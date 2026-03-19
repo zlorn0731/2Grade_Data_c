@@ -183,7 +183,7 @@ typedef struct Student {
 ```
 ```
 - 별칭을 정의할 경우 구조체 이름 생략 가능
-typedef struct { <-- 이름 생략
+typedef struct  { <-- 이름 생략
     int id;
     char name[20];
     float score;
@@ -193,7 +193,7 @@ typedef struct { <-- 이름 생략
 - 구조체를 포함한 구조체
 #### (예시)
 ```
-typedef struct { // 별칭을 정의한 경우 이름 생략
+typedef struct  { // 별칭을 정의한 경우 이름 생략
     int month;
     int date;
 } Birthday; // 구조체의 별칭
@@ -213,4 +213,111 @@ int main() {
 	list[0].birthday.date = 5; // 첫 번째 친구값 . 그 친구 생일 구조체 . 그 안의 값
 	strcpy(list[0].name, "Minyoung"); // <string.h> 헤더 파일 필요
 }
+```
+
+### 구조체와 함수
+- 함수의 매개 변수나 반환형으로 사용할 수 있음
+  - Call by value : 변수(값)을 복사
+#### (예시) - pg.58 프로그램 2.3
+```
+#include <stdio.h>
+
+typedef struct { // 실수부와 허수부를 멤버로 갖는 복소수 구조체 정의
+	double real; // 복소수의 실수부 --> 복소수 : z = a + bi | 실수부 : a 
+	double imag; // 복소수의 허수부 --> 복소수 : z = a + bi | 허수부 : b, 허수 단위 : i
+} Complex; // 타입(자료형)
+
+// 복소수의 내용을 출력하는 함수
+void print_complex(Complex c) { // Complex c = 지역 변수
+	printf("%4.1f + %4.1fi\n", c.real, c.imag);
+}
+
+// 복소수의 실수부와 허수부를 모두 0으로 초기화하려는 함수
+void reset_complex(Complex c) { // Complex c = 지역 변수
+	c.real = c.imag = 0.0;
+}
+
+void main() {
+	Complex a = { 1.0, 2.0 };
+	printf("초기화 이전: ");
+	print_complex(a); // 복소수 화면 출력
+	reset_complex(a); // 초기화가 되지 않음
+	printf("초기화 이후: ");
+	print_complex(a); // 복소수 화면 출력
+}
+```
+```
+- 결과
+초기화 이전: a = 1.0 + 2.0i
+초기화 이후: a = 1.0 + 2.0i
+```
+
+### 배열과 구조체의 응용 : 다항식
+- 다항식의 일반적인 형태
+- p(x) = aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ... + a₁x + a₀
+  - a : 계수(coefficient)
+  - 차수(exponent)
+  - 다항식의 차수 : p(x)의 가장 큰 차수
+
+- 다항식의 표현
+  - 다항식의 모든 계수들을 배열에 저장하는 방법
+#### (예시)
+```
+p(x) = 10x⁵ + 6x + 3
+∇
+p(x) = 10x⁵ + 0x⁴ + 0x³ + 0x² + 6x¹ + 3x⁰
+```
+- 계수(coefficient)의 리스트인 (10, 0, 0, 0, 6, 3)을 배열에 저장하는 방법
+- 차수(degree)를 저장하는 배열이 하나 더 있어햐 함
+#### (예시)
+```
+#define MAX_DEGREE 101 // 다항식의 최고 차수 + 1
+typedef struct {
+	int degree;
+	float coef[MAX_DEGREE];
+} Polynomial;
+```
+- #define MAX_DEGREE 101 : 상수(값)를 이름으로 만든 것
+  - 왜 101이냐? : 최대 차수 100까지, 배열은 0부터 시작 | 0 ~ 100 -> 총 101개
+  - 최대 100차 다항식
+
+- typedef struct : 구조체 만들면서 이름(별명)도 같이 만드는 것
+
+- int degreee; : 다항식의 최고 차수 저장
+#### (예시) 
+```
+p(x) = 10x⁵ + 6x + 3 | degree = 5
+```
+- float coef[MAX_DEGREE]; : 계수들을 저장하는 배열
+  - 왜 float? : 계수가 소수일 수도 있어서
+  - 배열 의미 : index = 차수
+#### (예시)
+```
+p(x) = 10x⁵ + 6x + 3
+
+coef[0] = 10;  // x⁵
+coef[1] = 0;   // x⁴
+coef[2] = 0;   // x³
+coef[3] = 0;   // x²
+coef[4] = 6;   // x¹
+coef[5] = 3;   // x⁰
+```
+
+- } Polynomial; : 구조체 이름(별명) = Polynomial
+
+### 다항식 구조체
+- 배열에 계수를 저장하는 순서
+### 방법 1 pg.61
+```
+      [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] 
+coef | 10 | 0 | 0 | 0 | 6 | 3 |   |   |   |   |
+        |    \    \    \       \     \
+p(x) = 10x⁵ + 0x⁴ + 0x³ + 0x² + 6x¹ + 3x⁰
+```
+### 방법 2 pg.61
+```
+      [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] 
+coef | 3 | 6 | 0 | 0 | 0 | 10 |   |   |   |   |
+        /      /    |     \     \     \
+p(x) = 10x⁵ + 0x⁴ + 0x³ + 0x² + 6x¹ + 3x⁰
 ```
