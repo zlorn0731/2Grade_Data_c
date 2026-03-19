@@ -465,4 +465,192 @@ scanf("%f", p.coef + 0);
 i = 1
 scanf("%f", p.coef + 1);
 → p.coef[1]에 저장
+
+i = 2
+scanf("%f", p.coef + 2);
+→ p.coef[2]에 저장
 ```
+    - p.coef + i = &p.coef[i] 같은 뜻 둘다 가능
+```
+scanf("%f", &p.coef[i]);
+scanf("%f", p.coef + i);
+```
+
+- return p;
+  - 입력받아서 완성된 다항식 p를 함수 밖으로 돌려줌
+  - 함수가 끝나면 p전체가 반환
+ 
+### 다항식 덧셈 연산
+- 단순화 방법 : p = a + b -> (1단계) p = a; (2단계) p += b;
+#### (예시)
+```
+Polynomial add_poly(Polynomial a, Polynomial b)
+{
+	int i;
+	Polynomial p;
+	if (a.degree > b.degree) { // 차수가 높은 다항식을 먼저 복사
+		p = a;
+		for (i = 0; i <= b.degree; i++)
+			p.coef[i + (p.degree - b.degree)] += b.coef[i];
+	}
+	else {
+		p = b;
+		for (i = 0; i <= a.degree; i++)
+			p.coef[i + (p.degree - a.degree)] += a.coef[i];
+	}
+	return p;
+}
+```
+- Polynomial add_poly(Polynomial a, Polynomial b) : 함수 선언
+  - 함수 이름 : add_poly
+  - 매개변수 : 다항식 2개 a, b
+  - 반환형 : Polynomial
+- 다항식 a와 b를 더해서 그 결과를 Polynomial 형태로 돌려준다는 뜻
+
+- int t; : 반복문에서 사용할 변수
+  - 계수들을 하나씩 더하기 위해 필요
+ 
+- Polynomial p; : 결과를 저장할 다항식 변수
+  - a + b의 결과를 p에 담고 마지막에 return p;로 돌려줌
+ 
+- if (a.degree > b.degree) : 어느 다항식의 차수가 더 큰지 비교
+  - 왜 비교? : 배열에 저장된 계수의 시작 위치가 차수에 따라 달라서 정렬 맞춰서 더해야 함
+ 
+- p = a; : 결과 다항식 p를 일단 a로 복사
+  - p.degree = a.degree, p.coef[] : a의 계수들로 한 번에 복사
+  - 구조체는 =로 통째 복사 가능
+- 왜 먼저 복사?
+  - 차수가 더 큰 다항식을 먼저 결과로 잡아두면 편함
+```
+예를 들어
+a(x) = 3x⁴ + 2x³ + 1
+b(x) = 5x² + 7
+이면 결과도 당연히 최고차수 4
+-> 큰 차수인 a를 먼저 복사해 놓고, 거기에 b를 더하는 방식으로 만듦
+```
+
+- for (i = 0; i <= b.degree; i++)
+  - b의 모든 계수를 하나씩 보겠다는 뜻
+  - b.degree = 2 -> b.coef[0] | b.coef[1] | b.coef[2] 총 3개를 처리
+
+- p.coef[i + (p.degree - b.degree)] += b.coef[i]; : 가장 핵심🔥
+  - 의미 : b의 계수를 p의 올바른 위치로 이동해서 더함
+  - 왜 필요하냐 : 다항식은 같은 차수끼리 더해야 함
+  - 다항식 형태 : p(x) = aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ... + a₁x + a₀
+  - 덧셈 원리 : aₖxᵏ + bₖxᵏ = (aₖ + bₖ)xᵏ
+```
+배열 저장 방식
+coef[0] → xⁿ
+coef[1] → xⁿ⁻¹
+...
+coef[n] → x⁰
+```
+#### (예시) 
+```
+a(x) = 10x⁵ + 6x + 3
+b(x) = 2x² + 4x + 1
+
+배열 상태
+a: [10, 0, 0, 0, 6, 3]   (degree = 5) [0][1][2][3][4][5]
+b: [2, 4, 1]             (degree = 2) [0][1][2]
+
+문제 발생 : index 그대로 더하면 틀림
+b의 index 0은 x²인데
+a의 index 0은 x⁵
+a.coef[0] + b.coef[0]
+→ 10x⁵ + 2x² (❌)
+
+해결 방법 : 차이를 계산해서 위치 맞춤
+b를 오른쪽으로 밀어서 맞춰야 함
+shift = p.degree - b.degree
+      = 5 - 2
+      = 3 // 3칸 밀어야 
+	  
+index 이동
+b.coef[0] → p.coef[3]
+b.coef[1] → p.coef[4]
+b.coef[2] → p.coef[5]
+-----------------------------
+index : 0   1   2   3   4   5
+a     : 10  0   0   0   6   3
+b     : 0   0   0   2   4   1
+-----------------------------
+이제 같은 차수끼리 위치가 맞음
+
+공식
+k = i + (p.degree - b.degree)
+k = i + shift
+
+코드와 연결
+p.coef[i + (p.degree - b.degree)] += b.coef[i];
+
+수식 형태
+k = i + (p.degree - b.degree)
+p.coef[k] = p.coef[k] + b.coef[i]
+
+실제 계산
+a(x) = 10x⁵ + 6x + 3
+b(x) = 2x² + 4x + 1
+|-------------------------------|
+| index : 0   1   2   3   4   5 |
+| a     : 10  0   0   0   6   3 |
+| b     : 0   0   0   2   4   1 |
+|-------------------------------|
+- i = 0 (b의 x²)
+k = i + shift
+k = 0 + 3 = 3
+x² 위치는 index 3
+p.coef[3] += 2
+
+- i = 1 (b의 x¹)
+k = i + shift
+k = 1 + 3 = 4
+x¹ 위치는 index 4
+p.coef[4] += 4
+
+- i = 2 (b의 x⁰)
+k = i + shift
+k = 2 + 3 = 5
+상수항 위치는 index 5
+p.coef[5] += 1
+```
+#### 전체 다항식 프로그램 코드 pg.65 프로그램 2.7
+
+### 희소 다항식(Sparse Polynomial)
+- 대부분 항의 계수가 0인 다항식
+  - 10x¹⁰⁰ + 6 다항식에서 차수가 100으로 매우 크지만 계수가 0이 아닌 항은 2개뿐
+  - 이와 같은 대부분 항의 계수가 0인 다항식을 희소 다항식이라 칭함
+  - 앞에서 구현한 다항식 프로그램으로 희소 다항식을 구현하려면 메모리 낭비 심함
+  - 101개의 항의 계수를 저장하기 위한 공간 중에서 실제로 2개만 사용되고 나머지는 0으로 채워짐
+
+#### (예시)
+```
+(계수, 지수)로 표현
+10x⁵ + 6x + 3 -> ((10, 5), (6, 1), (3, 0))
+10x¹⁰⁰ + 6 -> ((10, 100), (6, 0))
+```
+
+- 희소 다항식 처리를 위한 구조체
+  - 2개의 구조체 필요
+  - 항의 정보를 (계수, 지수)의 형태로 저장하는 구조체 정의 필요
+#### (예시)
+```
+typedef struct { // 하나의 항을 표현하는 클래스
+	int expon; // 항의 지수
+	float coeff; // 항의 계수
+} Term;
+```
+  - 이 구조체는 하나의 항만을 표현
+    - 전체 희소 다항식을 나타내는 구조체를 추가로 정의 필요
+#### (예시)
+```
+typedef struct { // 희소 다항식 클래스
+	int nTerms; // 계수가 0이 아닌 항의 개수
+	Term term[MAX_TERMS]; // 계수가 0이 아닌 항의 배열
+} SparsePoly;
+```
+- 이것을 SparesPoly라고 하자
+- 희소 다항식 구조체는 다음과 같이 Term의 배열을 갖는 구조가 되어야함
+- 계수가 0이 아닌 항의 개수를 위한 멤버 변수도 필요
+- 되도록이면 함수 구현이 편한 Polynomial 사용 권장
+- 만약 메모리의 제한이 큰 시스템이나 심한 희소 다항식에 대해서는 SparesPoly 효율 좋음
