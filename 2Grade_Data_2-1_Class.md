@@ -307,17 +307,162 @@ coef[5] = 3;   // x⁰
 
 ### 다항식 구조체
 - 배열에 계수를 저장하는 순서
-### 방법 1 pg.61
+### 방법1 pg.61
 ```
       [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] 
 coef | 10 | 0 | 0 | 0 | 6 | 3 |   |   |   |   |
         |    \    \    \       \     \
 p(x) = 10x⁵ + 0x⁴ + 0x³ + 0x² + 6x¹ + 3x⁰
 ```
-### 방법 2 pg.61
+- 방법1 : Polynomial a = { 5, { 10, 0, 0, 0, 6, 3 } };
+
+### 방법2 pg.61
 ```
       [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] 
 coef | 3 | 6 | 0 | 0 | 0 | 10 |   |   |   |   |
         /      /    |     \     \     \
 p(x) = 10x⁵ + 0x⁴ + 0x³ + 0x² + 6x¹ + 3x⁰
+```
+- 방법2 : Polynomial a = { 5, { 3, 6, 0, 0, 0, 10} };
+
+### 다항식 입출력 연산(방법1)
+- 다항식의 구현
+  - 입력 함수, 출력 함수, 다항식의 덧셈
+ 
+#### (예시) pg.62 프로그램 2.4
+- 다항식의 출력 함수 print_poly()
+```
+void print_poly(Polynomial p, char str[])
+{
+	int i;
+	printf("\t%s", str); // 문자열은 다항식에 대한 설
+	for (i = 0; i < p.degree; i++)
+		printf("%5.1f x^%d + ", p.coef[i], p.degree - i);
+	printf("%4.1f\n", p.coef[p.degree]);
+}
+```
+- void print_poly(Polynomial p, char str[]) : 함수 선언
+  - Polynomial p : 출력할 다항식
+  - char str[] : 앞에 붙일 문자열 (예: "p(x) = ")
+#### (예시)
+```
+print_poly(p, "p(x) = ");
+```
+
+- int i;
+  - 반복문에서 사용할 변수
+ 
+- printf("\t%s", str); : 문자열 출력
+  - \t : 탭(들여쓰기)
+  - %s : 문자열 출력
+ 
+- for ( i = 0; i < p.degree; i++) : 핵심🔥
+  - 최고차항부터 마지막 전 항까지 반복
+  - 왜 < p.degree? : 마지막 항은 따로 출력
+ 
+- printf("%5.1f x^%d + ", p.coef[i], p.degree - i); : printf 핵심🔥
+  - %5.1f : 실수 출력 (자리 맞춤)
+  - p.coef[i] : 계수
+  - p.degree - i : 차수 계산
+  - 왜 이렇게 계산?
+```
+    coef[0] = 최고차
+    coef[1] = 다음
+    ...
+```
+  - 차수 = degree - index
+#### (예시)
+```
+degree = 5
+
+| i | coef[i] | 출력  |
+| - | ------- | ----- |
+| 0 | 10      | 10x^5 |
+| 1 | 0       | 0x^4  |
+| 2 | 0       | 0x^3  |
+| 3 | 0       | 0x^2  |
+| 4 | 6       | 6x^1  |
+```
+
+- printf("%4.1f\n", p.coef[p.degree]); : 마지막 항 (상수항, x⁰)
+  - 왜 따로 출력? : 마지막에는 + 붙이면 안됨
+
+#### (예시) 방법2를 사용할 경우
+```
+for (i = p.degree; i > 0; i--) // for문 역순으로 생성
+     printf("%5.1f x^%d + ", p.coef[i], p.degree);
+printf("%4.1f\n", p.coef[0]);
+```
+
+#### (예시) pg.63 프로그램 2.5
+- 다항식의 입력 함수 read_poly()
+``` 
+Polynomial read_poly()
+{
+	int i;
+	Polynomial p;
+	printf("다항식의 최고 차수를 입력하시오: ");
+	scanf("%d", &p.degree);
+	printf("각 항의 계수를 입력하시오 (총 %d개): ", p.degree + 1);
+	for (i = 0; i <= p.degree; i++)
+		scanf("%f", p.coef + i);
+	return p;
+}
+```
+- Polynomial read_poly() : 함수의 머리 부분
+  - 함수 이름 : read_poly
+  - 반환형 : Polynomial -> 함수 실행이 끝나면 Polynomial 타입의 값 하나를 돌려줌
+    - 왜 Polynomial을 반환하냐? : 함수 목적 | 사용자가 입력한 다항식을 구조체에 저장해서 넘겨주는 것
+#### (예시)
+```
+Polynomial p;
+p = read_poly();
+```
+
+- int i; : 반복문에서 사용할 변수
+- 계수 여러 개를 입력 -> 몇 번째 계수를 입력받는지 세기 위함
+
+- Polynomial p;
+- p : Polynomial 타입 변수를 하나 만듦
+  - 이 변수 안에 p.degree, p.coef[] 있음
+ 
+- scanf("%d", &p.degree); : 최고 차수 입력받기
+- & : p.degree는 정수값이 들어갈 변수 | &p.degree는 그 변수의 주소
+
+- printf("각 항의 계수를 입력하시오 (총 %d개): ", p.degree + 1); : 계수 입력 안내
+
+- for (i = 0; i <= p.degree; i++)
+- 계수를 하나씩 입력받기 위한 반복문
+- 왜 0부터 p.degree까지냐?
+```
+배열에 저장되는 위치
+coef[0]
+coef[1]
+coef[2]
+coef[3]
+coef[4]
+coef[5]
+```
+
+- scanf("%f", p.coef + i); : 핵심🔥
+  - c.oef가 뭐냐? : 계수 배열
+#### (예시)
+```
+p.coef[0]
+p.coef[1]
+p.coef[2]
+...
+``` 
+  - p.coef + i 무슨 뜻이냐?
+    - &p.coef[i] 같은 뜻
+    - i번째 계수를 저장할 위치의 주소를 의미
+#### (예시)
+```
+i = 0
+scanf("%f", p.coef + 0);
+→ p.coef[0]에 저장
+
+i = 1
+scanf("%f", p.coef + 1);
+→ p.coef[1]에 저장
 ```
