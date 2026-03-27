@@ -242,4 +242,216 @@ Element pop() {
        error("스택 공백 에러");
     return data[top--];
 ```
-init스택의 구현 부터 작성 요함
+
+### 스택의 구현 : int 스택
+- 자료구조의 핵심 기능에 집중, 코드를 단순화하기 위해 다음과 같이 구현
+  - 스택을 위한 데이터, 즉 data[], top을 전역 변수로 선언
+  - 스택의 연산들은 함수로 구현함
+  - 스택 항목의 자료형을 Element
+  - Element는 응용에 따라 적절한 자료형을 지정 가능, typedef, #define을 사용할 수 있음
+```
+1. #define Element int // Element가 int를 의미
+2. typedef double Element; // Element가 double를 의미
+3. #define Element Student // Element가 구조체 Student를 의미
+```
+- int를 저장하는 스택
+```
+typedef int Element;
+Element data[MAX_STACK_SIZE];
+int top;
+```
+- 스택 초기화와 항목 개수 검사 함수
+```
+void init_stack() { top = -1; }
+int size() { return top+1; }
+```
+- is_empty(), is_full() 함수
+```
+int is_empty() { return (top == -1); }
+int is_full() { return (top == +1); }
+```
+
+#### 프로그램 3.1 : 배열을 이용한 int 스택의 구현
+```
+#include <stdio.h>
+#include <stdlib.h> 
+#define MAX_STACK_SIZE 100 // MAX_STACK_SIZE의 크기는 100으로 지정
+typedef int Element; // 코드에서 int 요소만 가능
+
+Element data[MAX_STACK_SIZE]; // data[] 선언
+int top; // 초기 top 선언
+
+// 오류 상황 처리를 위한 함수, 메시지 출력 후 프로그램 종료
+void error(char c[]) // char c[] 매개변수
+{
+	printf("%s\n", c);
+	exit(1); // 에러면 프로그램 종료, #include <stdlib.h> 필요
+}
+
+// 스택의 연산
+// init(), size(), is_empty(), is_full(), push(), pop()
+void init_stack() { top = -1; } // 초기화 : 반환 안해줘 됨. 그래서 void를 쓰고 return도 없음
+int size() { return top + 1; } // 개수 반환
+int is_empty() { return top == -1; } // 비어있는지 판단
+int is_full() { return top == MAX_STACK_SIZE - 1; } // 꽉 찼는지 판단
+
+void push(Element e) // 요소 추가
+{
+	if (is_full()) // 포화상태인지 검사
+		error("스택 포화 에러"); // 포화면 에러
+	data[++top] = e; // 포화가 아니면 data[top]은 Element e
+}
+
+Element pop() // 요소 삭제
+{
+	if (is_empty()) // 공백상태인지 검사
+		error("스택 공백 에러"); // 공백이면 에러
+	return data[top--]; // 공백이 아니면 data[top]은 top -1
+}
+
+Element peek() // 꺼내지 않고 요소들 확인
+{
+	if (is_empty()) // 공백상태인지 검사
+		error("스택 공백 에러"); // 공백이면 에러
+	return data[top]; // 공백이 아니면 요소 확인이니 top값 반환 
+}
+
+// 스택 테스트를 위한 코드: 요소 종류마다 수정
+void print_stack(char msg[])
+{
+	int i;
+	printf("%s[%2d]= ", msg, size());
+	for (i = 0; i < size(); i++) {
+		printf("%2d ", data[i]);
+	}
+	printf("\n");
+}
+
+void main() {
+	int i;
+	init_stack(); // top 초기화
+	for (i = 1; i < 10; i++) { // 변수는 1 ~ 9
+		push(i); // i 스택에 push
+	}
+		print_stack("스택 push 9회");
+		printf("\tpop() ---> %d\n", pop()); // pop 1
+		printf("\tpop() ---> %d\n", pop()); // pop 2
+		printf("\tpop() ---> %d\n", pop()); // pop 3
+		print_stack("스택 pop 3회");
+}
+```
+
+### 스택의 구현 : 구조체를 저장하는 스택
+- 학생 정보
+  - 구조체 정의
+```
+typedef struct Student_t // 학생정보 구조체 이름
+{
+int id; // 학번
+char name[32]; // 이름
+char dept[32]; // 소속 학과
+} Student; 
+```
+- Element 정의
+  - 스택의 기본 연산을 그대로 사용가능
+```
+1. typedef Student Element; // 키워드 typedef를 사용하는 방법
+2. #define Element Student // 전처리 명령어 #define을 사용하는 방법
+```
+- 화멸 출력을 위한 print_stack()에서는 구조체를 출력하도록 약간의 코드 수정 필요
+
+#### 프로그램 3.2 : 배열을 이용한 Student 스택의 구현
+```
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_STACK_SIZE 100 // 스택 요소 저장을 위한 배열의 크기
+typedef struct Student // 스택에 저장할 요소의 자료형, Student 구조체 정의
+{
+	int id; // 학번
+	char name[32]; // 이름
+	char dept[32]; // 학과
+} Student; // 스택 요소 저장을 위한 배열의 크기
+typedef Student Element; // 스택 요소의 자료형 정의, Element가 Student를 지정, Element = Student
+Element data[MAX_STACK_SIZE]; // 실제 스택 요소의 배열
+int top; // 실제 스택의 top
+
+// 에러
+void error(char er[])
+{
+	printf("%s\n", er);
+	exit(1);
+ }
+
+// 연산
+void init_stack() { top = -1; }
+int size() { return top + 1; }
+int is_empty(){ return top == -1; }
+int is_full() { return top == MAX_STACK_SIZE - 1; }
+
+Element push(Element e)
+{
+	if (is_full())
+		error("Error 포화상태");
+	else
+		return data[++top] = e;
+}
+
+Element pop()
+{
+	if (is_empty())
+		error("Error 공백상태");
+	else
+		return data[top--];
+}
+
+Element peek()
+{
+	if (is_empty())
+		error("Error 공백상태");
+	else
+		return data[top];
+}
+
+void print_stack(char msg[])
+{
+	int i;
+	printf("%s[%2d]= ", msg, size());
+	for (i = 0; i < size(); i++)
+		printf("\n\t%-15d %-10s %-20s", data[i].id, data[i].name, data[i].dept);
+	printf("\n");
+}
+
+Student get_student(int id, char name[], char dept[]) // 새로운 Student 객체를 만들어 반환하는 함수
+{
+	Student s;
+	s.id = id;
+	strcpy(s.name, name);
+	strcpy(s.dept, dept);
+
+	return s;
+}
+
+void main()
+{
+	init_stack();
+	push(get_student(20230844, "박지안", "컴퓨터공학과"));
+	push(get_student(20230833, "조준형", "컴퓨터공학과"));
+	push(get_student(20230822, "김동우", "컴퓨터공학과"));
+	push(get_student(20230811, "최동훈", "컴퓨터공학과"));
+	print_stack("친구 4명 입력 후");
+	pop();
+	print_stack("친구 1명 삭제 후");
+}
+```
+- get_Student()가 없다면
+```
+Student s1 = { 20230844, "박지안", "컴퓨터공학과 };
+push(s1);
+이 코드를 이용해야 함
+```
+- 이 함수에서 문자열을 복사하기 위해 표준 라이브러리 함수인 strcpy() 사용
+  - #include <string.h> 헤더 파일 생성
+ 
+pg90까지 맞췄지만 앞에 코드 계속 써보면서 이해하기
