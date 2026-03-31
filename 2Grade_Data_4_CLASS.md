@@ -1,5 +1,5 @@
 # 📚 2학년 데이터구조 (Data Structures)
-## 4장 : 큐, 덱
+## 4장 : 큐
 
 ### 큐(queue)란?
 - 먼저 들어온 데이터가 먼저 나가는 자료구조
@@ -173,32 +173,300 @@ front가 rear보다 하나 앞에 있으면 : 포화 상태
 ```
 
 ### 큐의 연산 알고리즘
-- 큐의 is_empty() 연산
+#### 큐의 is_empty() 연산
 ```
 is_empty()
 
-if front = rear
-     then return TRUE
-     else return FALSE
+if front == rear
+    return TRUE
+else
+    return FALSE
 ```
 ```
-코드
+실제 코드
 int is_empty() {
     return (front == rear);
 }
 ```
-- 큐의 is_full() 연산
-  - rear의 다음 위치는 (rear+1)를 MAX_QUEUE_SIZE로 나눈 나머지
+#### 큐의 is_full() 연산
+- rear의 다음 위치는 (rear+1)를 MAX_QUEUE_SIZE로 나눈 나머지
 ```
 is_full()
 
-if front = (rear + 1) % MAX_QUEUE_SIZE
-     then return TRUE
-     else return FALSE
+if front == (rear + 1) % MAX_QUEUE_SIZE
+    return TRUE
+else
+    return FALSE
 ```
 ```
-코드
+실제 코드
 int is_full() {
     return (rear + 1) % MAX_QUEUE_SIZE == front;
 }
 ```
+#### 원형큐에서의 enqueue(x) 연산
+```
+enqueue(x)
+
+if is_full()
+    error "overflow"
+else
+    rear ← (rear + 1) % MAX_QUEUE_SIZE
+    data[rear] ← x
+```
+```
+실제 코드
+void enqueue(Element val) {
+    if (is_full())
+        error("큐 포화 상태");
+    rear = (rear + 1) % MAX_QUEUE_SIZE;
+    data[rear] = val;
+}
+```
+#### 원형큐에서의 dequeue() 연산
+```
+dequeue()
+
+if is_empty()
+    error "underflow"
+else
+    front ← (front + 1) % MAX_QUEUE_SIZE
+    return data[front]
+```
+```
+실제 코드
+Element dequeue() {
+    if (is_empty())
+        error("큐 공백 상태");
+    front = (front + 1) % MAX_QUEUE_SIZE;
+    return data[front];
+}
+```
+#### 원형 큐의 init() 연산
+```
+init()
+front ← 0
+rear ← 0
+```
+```
+실제 코드
+void init_queue() {
+    front = rear = 0;
+}
+```
+#### 원형 큐의 size() 연산
+```
+size()
+return (rear - front + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE
+```
+```
+실제 코드
+int size() {
+    return (rear - front + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE;
+}
+```
+
+### 프로그램 4.1 : 원형 큐의 프로그램
+```
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_QUEUE_SIZE 100
+
+typedef int Element;
+Element data[MAX_QUEUE_SIZE];
+int front;
+int rear;
+
+
+void error(char str[])
+{
+	printf("%s\n", str);
+	exit(1);
+}
+
+void init_queue() { front = 0; rear = 0; }
+int size() { return (rear - front + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE; }
+int is_empty() { return front == rear; }
+int is_full() { return front == (rear + 1) % MAX_QUEUE_SIZE; }
+
+Element enqueue(Element e)
+{
+	if (is_full())
+		error("큐 포화 에러");
+	rear = (rear + 1) % MAX_QUEUE_SIZE;
+	data[rear] = e;
+}
+
+Element dequeue()
+{
+	if (is_empty())
+		error("큐 공백 에러");
+	front = (front + 1) % MAX_QUEUE_SIZE;
+	return data[front];
+}
+
+Element peek()
+{
+	if (is_empty())
+		error("큐 공백 에러");
+	return data[(front + 1) % MAX_QUEUE_SIZE];
+}
+
+void print_queue(char msg[])
+{
+	int i, maxi = rear;
+	if (front >= rear)maxi += MAX_QUEUE_SIZE;
+	printf("%s[%2d]= ", msg, size());
+	for (i = front + 1; i <= maxi; i++)
+		printf("%2d", data[i % MAX_QUEUE_SIZE]);
+	printf("\n");
+}
+
+void main()
+{
+	int i;
+
+	init_queue();
+	for (i = 1; i < 10; i++)
+		enqueue(i);
+	print_queue("원형큐 enqueue 9회");
+	printf("\tdequeue() --> %d\n", dequeue());
+	printf("\tdequeue() --> %d\n", dequeue());
+	printf("\tdequeue() --> %d\n", dequeue());
+	print_queue("원형큐 dequeue 3회");
+
+	printf("\n\n20230844 박지안");
+}
+```
+### 프로그램 4.1 : 원형 큐 프로그램 설명
+- 원형 큐를 배열로 구현한 코드
+
+#### 전단 후단 선언
+```
+int front;
+int rear;
+```
+- int front; : 첫 번째 원소 바로 앞 위치를 가리키는 변수
+- int rear; : 마지막 원소 위치를 가리키는 변수
+
+#### init 함수
+```
+void init_queue { front = 0; rear = 0; }
+```
+- 큐를 빈 상태로 만듦
+
+#### size 함수
+```
+int size() { return (rear - front + MAX_QUEUE_SIZE) % MAX_QUEUE_SIZE; }
+```
+- 현재 큐 안에 들어있는 데이터 개수를 반환
+
+#### is_empty() 함수
+```
+int is_empty() { return front == rear; }
+```
+
+#### is_full() 함수
+```
+int is_full() { return front == (rear + 1) % MAX_QUEUE_SIZE; }
+```
+
+#### enqueue(e) 함수
+```
+Element enqueue(Element e)
+{
+	if (is_full())
+		error("큐 포화 에러");
+	rear = (rear + 1) % MAX_QUEUE_SIZE;
+	data[rear] = e;
+}
+```
+
+#### dequeue() 함수
+```
+Element dequeue()
+{
+	if (is_empty())
+		error("큐 공백 에러");
+	front = (front + 1) % MAX_QUEUE_SIZE;
+	return data[front];
+}
+```
+
+#### peek() 함수
+```
+Element peek()
+{
+	if (is_empty())
+		error("큐 공백 에러");
+	return data[(front + 1) % MAX_QUEUE_SIZE];
+}
+```
+
+#### print_queue 함수
+```
+void print_queue(char msg[])
+{
+	int i, maxi = rear;
+	if (front >= rear)maxi += MAX_QUEUE_SIZE;
+	printf("%s[%2d]= ", msg, size());
+	for (i = front + 1; i <= maxi; i++)
+		printf("%2d", data[i % MAX_QUEUE_SIZE]);
+	printf("\n");
+}
+```
+- 큐의 현재 상태를 출력
+- int i, maxi = rear;
+  - 반복문용 변수 i
+  - maxi는 출력 끝 위치를 잡기 위한 변수
+- if (front >= rear) maxi += MAX_QUEUE_SIZE; 🔥
+  - 원형 큐에서는 rear가 front보다 작을 수 있음
+```
+예시:
+front = 95;
+rear = 3;
+```
+  - 이런 경우엔 rear가 앞쪽으로 돌아온 상태
+  - 이때 그냥 for(i = front + 1; i <= rear; i++) 하면 반복이 안됨
+  - 그래서 rear에 MAX_QUEUE_SIZE를 더해서 쭉 이어진 것처럼 만들어줌
+- for(i = front + 1; i <= maxi; i++)
+  - front 다음 칸부터 rear까지 출력
+- data[i % MAX_QUEUE_SIZE] 🔥
+  - 만약 i가 100,101처럼 넘어갔을 때
+```
+예시:
+100 % 100 = 0
+101 % 100 = 1
+```
+  - 이렇게 다시 처음 칸으로 돌아가게 됨
+  - 즉 원형 구조를 출력에서도 똑같이 적용
+
+#### main 함수
+```
+void main()
+{
+	int i;
+
+	init_queue();
+	for (i = 1; i < 10; i++)
+		enqueue(i);
+	print_queue("원형큐 enqueue 9회");
+	printf("\tdequeue() --> %d\n", dequeue());
+	printf("\tdequeue() --> %d\n", dequeue());
+	printf("\tdequeue() --> %d\n", dequeue());
+	print_queue("원형큐 dequeue 3회");
+}
+```
+- init_queue();
+  - 큐 초기화
+  - front = 0, rear = 0
+- for (i = 1; i < 10; i++) enqueue(i);
+  - 1부터 9까지 넣음
+```
+큐 상태:
+1 2 3 4 5 6 7 8 9
+```
+
+##### ✍️작성자: 박지안
+##### 🐧실습 환경: Visual Studio 2022
+##### 🗓️ 작업일: 2026-03-31
