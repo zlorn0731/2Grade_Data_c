@@ -163,4 +163,17 @@ typedef struct {
 	int degree;
 	float coef[MAX_DEGREE];
 } Polynomial;
+
+Polynomial a;
+Polynomial* p;
+p = &a;
+a.degree = 5;
+p->coef[0] = 1;
 ```
+- 멤버를 선택하기 위해 구조체에서는 "."을 사용하지만
+  포인터에서는 "->"연산자를 사용
+- 구조체와 포인터를 이용한 멤버 참조
+| 구조체를 이용한 표현 | 포인터를 이용한 표현 |
+|--------------------|-----------------------|
+| a.degree | (&a)->degree | p->degree | (*p).degree |
+| a.coef[0] | (&a)->coef[0] | p->coef[0] | (*p).coef[0] |
