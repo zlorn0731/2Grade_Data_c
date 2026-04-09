@@ -202,3 +202,239 @@ p->degree = 5; = (*p).degree = 5;
 | a.degree | (&a)->degree | p->degree | (*p).degree |
 | a.coef[0] | (&a)->coef[0] | p->coef[0] | (*p).coef[0] |
 
+### 자기참조 구조체
+```
+typedef struct ListNode {
+	char data[10];
+	struct ListNode* link;
+} Node;
+```
+- 포인터는 NULL로 초기화
+```
+int* pi = NULL;
+```
+- 초기화가 안 된 포인터 변수 → 접근하면 안됨
+```
+char* pc; // 포인터 pc는 초기화가 안 되어 있음
+*pc = 'a'; // 매우 위험한 코드
+```
+- 포인터 사이의 변환에는 명시적인 형 변환
+```
+void *p;
+pi = (int *) p;
+```
+- 포인터의 종류
+```
+void *p; // p는 아무것도 가리키지 않는 포인터
+int *pi; // pi는 정수 변수를 가리키는 포인터
+float *pf; // pf는 실수 변수를 가리키는 포인터
+char *pc; // pc는 문자 변수를 가리키는 포인터
+int **pp; // pp는 포인터를 가리키는 포인터
+test *ps; // test 타입의 객체를 가리키는 포인터
+void (*f)(int); // f는 함수를 가리키는 포인터
+```
+
+### 정적 메모리
+- 정적 메모리 할당
+  - 메모리의 크기는 프로그램이 시작하기 전에 결정
+  - 실행 도중에 크기를 변경 ❌
+  - 더 큰 입력이 들어온다면 처리하지 못함
+  - 더 작은 입력이 들어온다면 메모리 공간 낭비
+```
+int i; // int형 변수 i를 정적으로 할당
+int* p; // 포인터 변수 p를 정적으로 할당
+int A[10]; // 길이가 10인 배열을 정적으로 할당
+```
+```
+int n = 10;
+int B[n]; // 컴파일 오류
+```
+
+### 동적 메모리 라이브러리 함수
+- 실행 도중에 메모리를 할당 받는 것
+  - 필요한 만큼만 할당을 받고 반납함
+  - 메모리를 매우 효율적으로 사용가능
+```
+void* malloc(int size);
+void* calloc(int num, int size);
+
+void free(void* ptr)
+```
+- malloc(size) : size 바이트만큼 한 덩어리로 할당
+  - 초기화 안됨 ❌
+  - 쓰레기 값 들어있음
+```
+예시:
+Node* p = (Node*)malloc(sizeof(Node));
+→ Node 하나 공간 생성
+```
+- calloc(num, size) : num개 X size크기 만큼 할당
+  - 초기화 됨 ✅
+  - 전부 0으로 채워짐
+```
+예시:
+int* arr = (int*)calloc(5, sizeof(int));
+→ int 5개짜리 배열 생성
+```
+- 
+| 구분 | malloc | calloc |
+|-----|--------|---------|
+| 인자 | size | num, size |
+| 의미 | 총 바이트 | 개수 x 크기 |
+| 초기화 | ❌ | ✅(0으로) |
+| 속도 | 빠름 | 조금 느림 |
+
+- 동적 메모리 할당과 해제
+```
+int* pi = (int*)malloc(sizeof(int)*10);
+Polynomial* pa = (Polynomial*)malloc(sizeof(Polynomial));
+pi[3] = 10; // 동적 할당된 메모리를 배열처럼 사용
+pa->degree = 5; // 동적 할당된 다항식 구조체의 멤버 변경
+...
+free(pi);
+free(pa);
+```
+
+### 포인터의 응용 : 연결된 표현
+- Linked Representation ↔ 배열
+  - 항목들을 노드(node)라고 하는 곳에 분산하여 저장
+  - 다음 항목을 가리키는 주소도 같이 저장
+    - 노드(node) : <항목, 주소> 쌍
+    - 항목 : data / 주소 : link
+  - 노드는 데이터 필드와 링크 필드로 구성 : | data | link |→
+                                     데이터 필드 | 링크 필드
+    - 데이터 필드 : 리스트의 원소, 즉 데이터 값을 저장하는 곳
+    - 링크 필드 : 다른 노드의 주소값을 저장하는 장소(포인터)
+  - 메모리안에서의 노드의 물리적 순서가 리스트의 논리적 순서와 일치할 필요 없음
+    - | data | link |→ | data | link |→ | data | link |→ | data | link |→
+- 연결된 표현의 장단점
+  - 장점
+    - 삽입, 삭제가 보다 용이함
+    - 연속된 메모리 공간이 필요없음
+    - 크기 제한이 없음 
+  - 단점
+    - 구현이 어려움
+    - 오류가 발생하기 쉬움
+```
+삽입 연산 그림
+          ↗| N |↘
+| A | → | B | × | C | → | D | → | E |
+
+삭제 연산 그림
+          ↑→→→→→→→→→→→→→→→↓`
+| A | → | B | × | C | × | D | → | E |
+```
+
+### 연결 리스트
+- 연결 리스트의 구조
+  - 노드(node)
+```
+    | data | link |→
+     ↗        ↖
+데이터 필드   링크 필드
+```
+- 헤드 포인터(head pointer)
+  - 리스트의 첫 번째 노드의 주소를 저장하는 포인터
+```
+↓헤드 포인터
+|  A  | |→  |  B  | |→  |  C  | |→  NULL
+```
+- 연결 리스트의 종류
+  - 단순 연결 리스트
+```
+헤드포인터→  |    |  |→  |    |  |→  |    |  |→  |    |  |→  NULL
+```
+  - 원형 연결 리스트
+```
+헤드포인터→  |    |  |→  |    |  |→  |    |  |→  |    |  |
+            ↑←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←↓
+```
+  - 이중 연결 리스트
+    - 각각의 노드는 선행 노드, 후속 노드를 모두 가리킴
+```
+헤드포인터→  | |   | |→| |   | |→| |   | |→ ...  | |   | |→  NULL
+           ←| |   | |←| |   | |←| |   | |← ... ←| |   | |
+데이터구조 05장포인터와연결리스트 pg21 참고
+```
+- 연결 리스트로 구현한 스택
+  -노드 구조체
+```
+typedef int Element;
+typedef struct LinkedNode {
+	Element data;
+	struct LinkedNode* link;
+} Node;
+```
+  - 배열과 연결리스트를 이용한 스택의 비교
+```
+Element data[MAX_STACK_SIZE]
+int top;
+
+   4 |     |
+   3 |     |
+   2 |  C  | ← top
+   1 |  B  |
+   0 |  A  |
+배열을 이용한 스택
+
+Node* top;
+      top
+        ↘
+      |  C  | |
+           ↙
+      |  B  | |
+           ↙
+      |  A  | |
+           ↙
+         NULL
+연결 리스트를 이용한 스택
+Node* top = NULL;
+
++정보 : -top은 head pointer
+```
+
+### Node* p = (Node*)malloc(sizeof(Node));
+- 구조체를 동적으로 생성해서 포인터로 다루는 코드
+
+- Node?
+```
+typedef struct node {
+	char data[10];
+	struct node* link;
+} Node;
+```
+  - Node : 구조체 이름
+  - data : 값 저장
+  - link : 다음 노드 주소 저장
+  - char data[10];
+    struct node* link;
+    | data | link | 연결리스트 한 칸(노드)을 의미
+```
+Node* p
+```
+  - p = Node 구조체를 가리키는 포인터
+    - Node 하나를 가리킬 주소 변수
+```
+malloc(sizeof(Node))
+```
+  - heap 메모리에 공간을 만들어달라는 뜻
+    - sizeof(Node) : Node 구조체 크기만큼
+    - malloc() : 그 크기만큼 메모리 할당
+      - Node 하나 들어갈 공간을 heap에 생성
+```
+(Node*)
+```  
+  - malloc은 원래 void* 타입을 반환함
+    - Node* 타입으로 쓰라고 변환함
+```
+전체 해석:
+Node 하나 들어갈 공간을 heap에 만들고,
+그 주소를 p에 저장
+
+쓰는 이유:
+연결리스트 만들기 위해
+p->data = 10;
+p->link = NULL;
+Node 하나 만들어서 값 넣고 다음 연결 준비
+```
+pg24부터 하면 
