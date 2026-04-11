@@ -163,6 +163,7 @@ typedef struct {
 	int degree;
 	float coef[MAX_DEGREE];
 } Polynomial;
+polynomial* top = NULL;
 
 Polynomial a;
 Polynomial* p;
@@ -208,6 +209,7 @@ typedef struct ListNode {
 	char data[10];
 	struct ListNode* link;
 } Node;
+Node* top = NULL;
 ```
 - 포인터는 NULL로 초기화
 ```
@@ -321,7 +323,7 @@ free(pa);
 | A | → | B | × | C | → | D | → | E |
 
 삭제 연산 그림
-          ↑→→→→→→→→→→→→→→→↓`
+          ↑→→→→→→→→→→→→→→→↓
 | A | → | B | × | C | × | D | → | E |
 ```
 
@@ -437,4 +439,290 @@ p->data = 10;
 p->link = NULL;
 Node 하나 만들어서 값 넣고 다음 연결 준비
 ```
-pg24부터 하면 
+
+### 연결된 스택의 연산
+#### is_empty() 연산
+- top이 NULL값을 갖는 경우
+
+#### is_full() 연산
+- 더 이상 불필요
+
+#### push() 연산
+- 새로운 노드를 스택에 삽입
+```
+예시 : 새로운 D노드를 스택에 삽입
+top→|  C  | |→|  B  | |→|  A  | |→NULL
+    ↘   ↖
+p→|  D  | |
+```
+```
+1. 노드 D의 링크 필드가 노드 C를 가리키도록 함 : p->link = top;
+2. 헤더 포인터 top이 노드 D를 가리키도록 함 : top = p;
+```
+```
+top→|  C  | |→|  B  | |→|  A  | |→NULL
+    ↘   ↖
+p→|  D  | |
+```
+```
+void push( Node *p )
+{
+  p->link = top;
+  top = p;
+}
+
+풀이:
+이미 만들어진 Node p를 스택에 넣는 함수
+p->link = top; 새 노드 p가 기존 top을 가리키게 함
+기존:
+- top → A → B → C
+p 생성됨
+- p → A → B → C
+- top = p; 이제 p가 맨 위가 됨
+- top → p → A → B → C
+```
+```
+void push(Element e)
+{
+  Node* p = (Node*)malloc(sizeof(Node));
+  p->data = e;
+
+  p->link = top;
+  top = p;
+}
+
+풀이:
+값 e를 받아서 → 노드를 만들고 → 스택에 넣는 함수
+Node* p = (Node*)malloc(sizeof(Node)); 힙에 노드 하나 생성
+데이터 넣기
+- p->data = e; 값 저장
+연결
+- p->link = top; 기존 top을 뒤로 밀기
+top 갱신
+- top = p; 새 노드를 맨 위로
+기존:
+- top → A → B → C
+push(10):
+- top → [10] → A → B → C
+```
+- 
+| 구분 | push(Node* p) | push(Element e) |
+|-----|----------------|-----------------|
+| 입력 | 노드 자체 | 값 |
+| 역할 | 연결만 함 | 생성 + 연결 |
+| 사용 상황 | 이미 노드 있을 때 | 일반적인 push |
+- 연결 리스트의 is_full()
+  - 배열이 아니라서 공간이 고정 ❌
+  - 연결리스트는 고정된 값이 아님 그래서 is_full() 불필요
+  - 필요할 때마다 malloc()으로 계속 생성 가능
+  - 연결리스트의 포화는 "malloc 실패" 딱 한 경우
+```
+연결리스트의 push연산 최종
+
+void push(Element e) 
+{   
+    Node* p = (Node*)malloc(sizeof(Node));
+
+    if(p == NULL)
+        error("메모리 할당 실패"); // 포화 체크
+    p->data = e;
+    p->link = top;
+    top = p;
+}
+```
+
+#### pop() 연산
+```
+1. 포인터 변수 p가 노드 C를 가리키도록 함 : p = top;
+2. 헤더 포인터 top이 B를 가리키도록 함 : top = p->next;
+3. 마지막으로 변수 P의 값을 반환함 : return p;
+```
+```
+예시:
+    ↑→→→→→→→→→↓
+top↛|  C  | |→|  B  | |→|  A  | |→NULL
+ ↗
+p
+```
+```
+Node* pop()
+{
+   Node* p;
+   if(is_empty()) error("에러");
+
+   p = top;
+   top = p->ilnk;
+
+   return p;
+}
+
+풀이:
+메모리 해제 ❌
+노드 자체를 꺼내서 반환
+동작 흐름
+- top → A → B → C
+p = top; p가 A를 가리킴
+top = p->link; top이 B로 이동
+- top → B → C
+- p → A
+return p; A 노드를 통째로 넘김
+```
+```
+Element pop()
+{
+   Node* p;
+   Element e;
+   if(is_empty()) error("스택공백에러");
+
+   p = top;
+   top = p->link;
+
+   e = p->data;
+   free(p); // 노드 동적 해제
+   return e;
+}
+
+풀이:
+메모리 해제 ✅
+데이터만 꺼내고 노드는 삭제
+동작 흐름
+- top → A → B → C
+p = top; A 잡음
+top = p->link; top → B
+e = p->data; 값만 복사
+free(p); A 메모리 삭제
+```
+- 
+| 구분 | Node* pop() | Element pop() |
+|-----|--------------|---------------|
+| 반환값 | 노드 전체 | 데이터만 |
+| free | ❌ 없음 | ✅ 있음 |
+| 책임 | 호출자가 free | 함수 내부에서 처리 |
+| 사용 목적 | 구조 자체 다룰 때 | 일반 스택 사용 |
+- Node* pop()
+  - 연결리스트 자체를 조작할 때
+  - 노드를 다른 곳에 재사용할 때
+- Element pop()
+  - 일반적인 스택(값만 필요할 때)
+  - 제일 많이 쓰는 방식
+```
+pop() 연산 최종 코드
+
+Element pop()
+{
+   Node* p;
+   Element e;
+   if(is_empty()) error("스택공백에러");
+
+   p = top;
+   top = p->link;
+
+   e = p->data;
+   free(p); // 노드 동적 해제
+   return e;
+}
+```
+
+#### 연결된 스택의 기타 연산들
+- peek()
+  - 반드시 먼저 공백상태를 검사
+- destory_stack()
+  - 동적 할당을 사용해서 사용이 다 끝나면 할당한 횟수와 동일하게 해제 함수를 호출해야 함
+  - 스택이 공백상태가 아닐 동안 계속 pop() 연산으로 노드를 꺼내고, 해제
+```
+peek() 연산 코드
+
+Element peek()
+{
+    if(is_empty())
+        error("스택공백에러");
+
+    return top->data;
+}
+
+풀이:
+스택 맨 위 값 확인만 하고, 제거는 안 함
+동작 흐름
+- top → A → B → C
+peek()
+- A를 반환
+- 스택은 그대로 유지
+- top → A → B → C   (변화 없음)
+```
+```
+destory_stack() 연산 코드
+
+void destroy_stack()
+{
+    Node* p;
+
+    while (!is_empty()) {
+        p = top;
+        top = p->link;
+        free(p);
+    }
+}
+
+풀이:
+스택 전체를 싹 비우고 메모리까지 전부 해제
+동작 흐름
+- top → A → B → C
+p = top; A 잡음
+top = p->link; top → B
+free(p); A 삭제
+이걸 반복하면 : B 삭제 → C 삭제
+- 최종 : top = NULL (빈 스택)
+```
+- 
+| 함수 | 역할 | 스택 변화 |
+|------|------|-----------|
+| peek() | 값 확인 | ❌ 변화 없음 |
+| destroy_stack() | 전체 삭제 | ✅ 완전히 비워짐 |
+
+#### 전체 노드 방문 연산
+- size() 함수
+  - top부터 하나씩 다음 노드를 따라가면서 몇 개의 노드가 연결되었는지 확인해야 함
+```
+top→|  A  | |→|  B  | |→|  C  | |→|  D  | |→NULL
+
+int size()
+{
+    Node *p;
+    int count = 0;
+
+    for(p = top; p != NULL; p = p->link)
+        count++;
+
+    return count;
+}
+
+풀이:
+현재 스택에 들어있는 노드 개수 ( = 데이터 개수) 세는 함수
+동작 원리
+- 연결리스트는 배열처럼 길이를 바로 알 수 없음
+- 그래서 처음부터 끝까지 순회하면서 하나씩 세야 함
+포인터 준비
+- Node *p; 순회용 포인터(top부터 따라갈 용도)
+카운트 변수
+- int count = 0; 노드 개수 저장
+반복문
+- for(p = top; p != NULL; p = p->link)
+      count++;
+  - p = top; 시작(맨 위)
+  - p != NULL; 끝까지 갈 때까지 반복
+  - p = p->link; 다음 노드로 이동
+순회 과정
+- p=A (count=1)
+- p=B (count=2)
+- p=C (count=3)
+- p=NULL → 종료
+결과 반환
+- return count; 총 개수 반환
+```
+- 
+| 구조 | size 구하는 방법 |
+|------|------------------|
+| 배열 스택 | 변수 하나로 바로 O(1) |
+| 연결리스트 | 순회 필요 O(n) |
+
+### 연결된 스택의 프로그램 구현
