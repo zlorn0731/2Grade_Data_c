@@ -726,4 +726,224 @@ int size()
 | 연결리스트 | 순회 필요 O(n) |
 
 ### 연결된 스택의 프로그램 구현
-여기부터 정리 필요
+```
+void main()
+{
+    int i;
+    init_stack();
+    for (i = 1; i < 10; i++)
+        push(i);
+
+    print_stack("연결된 스택 push 9회");
+    printf("\tpop() --> %d\n", pop());
+    printf("\tpop() --> %d\n", pop());
+    printf("\tpop() --> %d\n", pop());
+    print_stack("연결된 스택 pop 3회");
+    destroy_stack();
+    print_stack("연결된 스택 destroy");
+}
+
+- 결과
+연결된 스택 push 9회 [ 9] = 9 8 7 6 5 4 3 2 1
+      pop() --> 9
+      pop() --> 8
+      pop() --> 7
+연결된 스택 pop 3회 [ 6] = 6 5 4 3 2 1
+연결된 스택 destroy [ 0] =
+```
+
+### 연결리스트로 구현한 큐
+- 연결된 큐
+  - front, rear
+```
+배열을 이용한 원형 큐
+
+Element data[MAX_QUEUE_SIZE]
+int front;
+int rear;
+```
+```
+연결 리스트를 이용한 큐
+
+Node* front;
+Node* rear;
+```
+```
+초기화
+
+Node* front = NULL;
+Node* rear = NULL;
+```
+
+#### 삽입 연산
+- 공백 상태의 삽입
+```
+Node* front = NULL;
+Node* rear = NULL;
+
+front     rear          ↓temp
+   ↘    ↙           |  A  |  |
+     NULL                     ↳NULL
+
+               ⬇️
+         front    rear
+             ↘  ↙
+            |  A  |  | 
+                    ↳NULL
+```
+- 포화 상태
+  - 무의미
+- delete_queue()
+  - 큐를 동적으로 해제하는 함수
+  - 큐가 공백상태가 아닐 동안 계속 dequeue()를 수행
+- 삽입 연산
+  - 연결 리스트의 후단(rear)에 새로운 노드 추가
+- 비공백 상태의 삽입
+```
+(1) rear가 가리키는 노드 C가 노드 p를 가리키도록 함 : rear → link = p;
+(2) rear가 노드 p를 가리키도록 함 : rear = p;
+```
+```
+ front                 rear                   temp
+   ↓                     ↓                     ↓
+|  A  |  |→|  B  |  |→|  C  |  |→NULL       |  D  |  |
+                                                    ↳NULL
+
+                           ⬇️
+
+ front                          rear                   
+   ↓                               ↘                     
+|  A  |  |→|  B  |  |→|  C  |  |→|  D  |  |→NULL
+```
+
+#### 연결된 큐의 삽입 연산
+```
+void enqueue(Element e)
+{
+    Node* p = (Node*)malloc(sizeof(Node));
+
+    p->data = e; // 데이터 필드 초기화
+    p->link = NULL; // 링크 필드 초기화
+
+    if (is_empty())
+        front = rear = p;
+    else
+    {
+        rear->link = p;
+        rear = p;
+    }
+}
+```
+
+### 삭제 연산
+- 연결 리스트의 전단(front)에서 노드를 꺼내 오기
+- 공백 상태 검사
+  - 공백 상태이면 : 오류
+  - 공백 상태가 아니면 : 임시 포인터 p를 이용하여 다음 수행
+```
+(1) front가 가리키는 노드 A를 p가 가리키도록 함 : p = front;
+(2) front가 다음 노드 B를 가리키도록 함 : front = p->link;
+```
+- 노드가 두 개 이상인 경우
+```
+ front                            rear                   
+   ↓                                ↓                     
+|  A  |  |→|  B  |  |→|  C  |  |→|  D  |  |→NULL
+
+                    ⬇️
+
+p        front                    rear                   
+↓           ↘                      ↓                     
+|  A  |  |→|  B  |  |→|  C  |  |→|  D  |  |→NULL
+```
+- 노드가 하나인 경우
+```
+ front    rear
+     ↘  ↙
+     |  A  |  | 
+             ↳NULL
+
+       ⬇️
+
+front     rear          ↓temp
+   ↘    ↙           |  A  |  |
+     NULL                     ↳NULL
+```
+
+#### 연결된 큐의 삭제 연산
+```
+void dequeue()
+{
+    Node* p;
+    Element e;
+
+    if (is_empty())
+        error("큐 공백 에러");
+
+    p = front;
+    front = p->link;
+
+    if (front = NULL)
+        rear = NULL;
+    e = p->data;
+    free(p);
+
+    return e;
+}
+```
+
+#### 연결된 큐의 구현 : int 큐 구현
+```
+typedef int Element;
+typedef struct LinkNode {
+    Element data;
+    struct LinkeNode* link;
+} Node;
+Node* front = NULL;
+Node* rear = NULL;
+```
+
+#### 학생 정보 큐
+- 연결된 큐에도 구조체 저장 가능
+  - 예시) 학생 정보 : 학번, 이름, 학과
+```
+typedef struct Student_t {
+    int id;
+    char name[32];
+    char dept[32];
+} Student;
+
+// Student 대신에 Element를 사용할 수 있음
+typedef Student Element;
+```
+- 구조체를 사용해도 연결된 큐의 기본 연산들은 그대로 사용
+
+#### get_student() 함수
+```
+Student get_student(int id, char* name, char* dept)
+{
+    Student s;
+    s.id = id;
+    strcpy(s.name, name);
+    strcpy(s.dept, dept);
+
+    return s;
+}
+
+void main()
+{
+    init_queue();
+    enqueue(get_student(2018130007, "홍길동", "컴퓨터공학과"));
+    enqueue(get_student(2018130100, "이순신", "기계공학과"));
+    enqueue(get_student(2018130135, "김연아", "체육과"));
+    enqueue(get_student(2018130135, "황희", "법학과"));
+    print_queue("연결된 학생큐(4명 삽입)");
+    dequeue();
+    print_queue("연결된 학생큐(1명 삭제)");
+    destroy_queue();
+}
+```
+
+##### ✍️작성자: 박지안
+##### 🐧실습 환경: Visual Studio 2022
+##### 🗓️ 작업일: 2026-04-16
