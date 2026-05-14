@@ -355,4 +355,55 @@ int size()
 
 시간 복잡도 : O(n)
 ```
-# pg29까지 해야됨 근데 22부터 작성요함
+```
+[연결리스트를 이용한 리스트의 항목 교체 및 탐색 연산]
+
+void replace(int pos, Element e)
+{
+    Node* node = get_entry(pos);
+    if (node != NULL)
+        node->data = e;
+}
+Node* find(Element e)
+{
+    Node* p;
+    for (p = head; p != NULL; p = p->link)
+        if (p->data == e)
+            return p;
+    return NULL; // 찾는 항목이 없음
+}
+```
+
+### 삽입 연산
+- 삽입 위치의 선행 노드를 알아야 삽입이 가능
+```
+  before
+→| B | |→| C | |→           →| B | |   | C | |→
+                                 ⑵↘   ↗⑴
+                              node | N | |
+   node | N | |               (b) 삽입한 후
+   (a) 삽입하기 전
+```
+```
+[연결리스트를 이용한 리스트의 노드 삽입 연산]
+
+void insert_next(Node* prev, Node* node)
+{
+    if (node != NULL) {
+        node->link = prev->link;
+        prev->link = node;
+    }
+}
+
+시간 복잡도 : O(1)
+- 연결 리스트의 가장 큰 장점
+```
+- insert(pos, e)
+  - 보다 일반적인 삽입 연산
+  - pos위치에 항목 e를 삽입하는 연산
+  - pos-1번째 항목을 찾아 insert_next()를 호출
+    - 리스트 중간에 삽입하는 경우
+      - insert_next()만 호출, head는 변하지 않음
+    - 리스트의 맨 앞에 삽입하는 경우
+      - insert_next()만 사용불가, head는 변함
+  pg24 그림부터 정리
