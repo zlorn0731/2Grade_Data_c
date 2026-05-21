@@ -406,4 +406,60 @@ void insert_next(Node* prev, Node* node)
       - insert_next()만 호출, head는 변하지 않음
     - 리스트의 맨 앞에 삽입하는 경우
       - insert_next()만 사용불가, head는 변함
-  pg24 그림부터 정리
+      ```
+      [연결된 스택의 삽입 연산]
+
+      헤드포인터(head)
+      →| A | |→| B | |→| C | |→| D | |→NULL
+
+      top ↛  | C | |→| B | |→| A | |→NULL
+         ↘   ↗
+      p→| D | |
+      ```
+
+#### 연결리스트를 이용한 리스트의 삽입 연산
+```
+void insert(int pos, Element val)
+{
+    node* new_node, * prev;
+    new_node = (Node*)malloc(sizeof(Node));
+    new_node->data = val;
+    new_node->link = NULL;
+
+    if (pos == 0) {
+        new_node->link = head;
+        head = new_node;
+    }
+    else {
+        prev = get_entry(pos - 1);
+        if (prev != NULL)
+            insert_next(prev, new_node);
+        else free(new_node);
+    }
+}
+```
+
+### 삭제 연산
+- 두 가지 경우
+    1. 연결 리스트에서 노드를 빼내는 연산
+    2. pos번째 노드를 삭제하는 연산
+  - 단순 연결 리스트
+    - 선행 노드의 정보를 알 수 없다
+    - 이중 연결 리스트
+  - 시간 복잡도 : O(1)
+  ```
+  (a) 삭제하기 전
+  
+    before  removed after
+  →| B | |→| N | |→| C | |→
+  --------------------------
+  (b) 삭제한 후
+  
+   before  removed after
+  →| B | |→| N | |→/| C | |→
+         ↘→→→→→→→→↗
+  ```
+  - 처리 과정
+    - 1. 노드 removed가 N을 가리키도록 함 : // 삭제할 노드를 찾는다   
+      - removed = before->link;
+    2. removed가 null이 아닌 경우 노드 B가 노드 C를 가리키게 함
