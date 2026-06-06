@@ -375,3 +375,142 @@
 
 (b) 경사 이진 트리
 ```
+
+#### 프로그램 8.1 : 이진 트리를 위한 노드 구조체와 기본 연산들
+- 노드 구조체
+```
+typedef char TElement; // 트리에 저장할 데이터의 자료형
+typedef struct BinTrNode {
+  TElement data; // 노드에 저장할 데이터
+  struct BinTrNode* left; // 왼쪽 자식 노드의 포인터
+  struct BinTrNode* right; // 오른쪽 자식 노드의 포인터
+} TNode;
+```
+- 이진 트리 데이터
+```
+TNode* root = NULL; // 루트노드의 포인터
+```
+- 실행 결과
+```
+In-Order    : [D] [B] [E] [A] [F] [C]
+Pre-Order   : [A] [B] [D] [E] [C] [F]
+Post-Order  : [D] [E] [B] [F] [C] [A]
+Level-Order : [A] [B] [C] [D] [E] [F]
+노드의 개수 = 6
+단말의 개수 = 3
+트리의 높이 = 3
+```
+- 풀 코드
+```
+typedef char TElement;
+typedef struct BinTrNode {
+  TElement data;
+  struct BinTrNode* left;
+  struct BinTrNode* right;
+} TNode;
+Tnode* root;
+
+void init_tree() { root = NULL; }
+int is_empty_tree() { return root == NULL; }
+TNode* get_root() { return root; }
+
+TNode* create_tree(TElement val, TNode* l, TNode* r)
+{
+  TNode* n = (TNode*)malloc(sizeof(TNode));
+  n->data = val;
+  n->left = l;
+  n->right = r;
+  return n;
+}
+
+void main() {
+  TNode *b, *c, *d, *e, *f;
+  init_tree();
+  d = create_tree('D', NULL, NULL);
+  e = create_tree('E', NULL, NULL);
+  b = create_tree('B', d, e);
+  f = create_tree('F', NULL, NULL);
+  c = create_tree('C', f, NULL);
+  root = create_tree('A', b, c);
+  // 트리 테스트 프로그램 추가
+  printf("\n    In-Order : ");  inorder(root);
+  printf("\n   Pre-Order : "); preorder(root);
+  printf("\n  Post-Order : "); posrtorder(root);
+  printf("\n Level-Order : "); levelorder(root);
+  printf("\n");
+  printf(" 노드의 개수 = %d\n", count_node(root));
+  printf(" 단말의 개수 = %d\n", count_leaf(root));
+  printf(" 트리의 높이 = %d\n", clac_height(root));
+}
+```
+
+### 이진 트리의 순회
+- 순회(traversal)
+  - 트리의 노드들을 한 번씩 방문하는 것
+  - (예시) 트리의 모든 항목을 화면에 출력
+  - 가장 기본적인 연산
+- 선형 자료구조에서의 순회
+  - 방법만 간단
+- 이진 트리에서의 순회
+  - 다양한 순회 방법이 존재
+  - 비선형 자료구조
+
+### 이진 트리의 기본 순회
+- 전위 순회(preorder traversal)
+  - 루트 → 왼쪽 자식 → 오른쪽 자식
+  - VLR
+- 중위 순회(inorder traversal)
+  - 왼쪽 자식 → 루트 → 오른쪽 자식
+  - LVR
+- 후위 순회(postorder traversal)
+  - 왼쪽 자식 → 오른쪽 자식 → 루트
+  - LRV
+```
+(a) 전위 순회
+
+             ◯1
+           ↙   ↘
+`       ◯2        ◯7
+      ↙  ↘      ↙  ↘
+    ◯3     ◯6 ◯8     ◯9
+  ↙  ↘               ↙  ↘
+◯4    ◯5           ◯10    ◯11
+```
+```
+(b) 중위 순회
+
+             ◯6
+           ↙   ↘
+`       ◯4        ◯8
+      ↙  ↘      ↙  ↘
+    ◯2     ◯5 ◯7     ◯10
+  ↙  ↘               ↙  ↘
+◯1    ◯3           ◯9    ◯11
+```
+```
+(c) 중위 순회
+
+             ◯11
+           ↙   ↘
+`       ◯5        ◯10
+      ↙  ↘      ↙  ↘
+    ◯3     ◯4 ◯6     ◯9
+  ↙  ↘               ↙  ↘
+◯1    ◯2           ◯7     ◯8
+```
+- 전체 트리나 서브 트리나 구조는 동일
+  - 전체 트리 순회에 사용한 알고리즘을 서브 트리에 적용가능
+  - 문제의 크기는 작아져야 함
+  - 순환
+
+### 전위 순회
+- 루트 → 왼쪽 서브트리 → 오른쪽 서브트리
+- 알고리즘 8.1 : 트리 전위 순회 알고리즘
+```
+preorder(x)
+
+if x /= NULL // x가 NULL이 아닐 때만 처리
+  then print DATA(x); // (1) 루트(x) 노드 처리
+    preorder(LEFT(x)); // (2) 왼쪽 서브트리 방문
+    preorder(RIGHT(x)); // (3) 오른쪽 서브트리 방문
+```
