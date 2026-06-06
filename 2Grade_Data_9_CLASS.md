@@ -509,8 +509,337 @@ void main() {
 ```
 preorder(x)
 
-if x /= NULL // x가 NULL이 아닐 때만 처리
+if x ≠ NULL // x가 NULL이 아닐 때만 처리
   then print DATA(x); // (1) 루트(x) 노드 처리
     preorder(LEFT(x)); // (2) 왼쪽 서브트리 방문
     preorder(RIGHT(x)); // (3) 오른쪽 서브트리 방문
 ```
+- 프로그램 8.2 : 이진 트리의 전위 순회 함수
+```
+void preorder(TNode *n)
+{
+  if (n != NULL) {
+            printf("[%c] ", n->data);
+            preorder(n->left);
+            preorder(n->right);
+          }
+}
+```
+
+### 중위 순회
+- 왼쪽 서브트리 → 루트 → 오른쪽 서브트리
+- 알고리즘 8.2 : 트리 중위 순회 알고리즘
+```
+inorder(x)
+
+if x ≠ NULL // x가 NULL이 아닐 때만 처리
+  then inorder(LEFT(x)); // (1) 왼쪽 서브트리 방문
+    print DATA(x); // (2) 루트(x) 노드 처리
+    inorder(RIGHT(x)); // (3) 오른쪽 서브트리 방문
+```
+- 프로그램 8.2 : 이진 트리의 중위 순회 함수
+```
+void inorder(TNode *n)
+{
+  if (n != NULL) {
+            inorder(n->left);
+            printf("[%c] ", n->data);
+            inorder(n->right);
+          }
+}
+```
+
+### 후위 순회
+- 왼쪽 서브트리 → 오른쪽 서브트리 → 루트
+- 트리 후위 순회 알고리즘
+```
+postorder(x)
+
+if x ≠ NULL // x가 NULL이 아닐 때만 처리
+  then postorder(LEFT(x)); // (1) 왼쪽 서브트리 방문
+    postorder(RIGHT(x)); // (2) 오른쪽 서브트리 방문
+    print DATA(x); // (3) 루트(x) 노드 처리
+```
+
+### 순회 방법의 선택
+- 어떤 순회 방법을 선택할 것인가?
+  - 순서는 중요하지 않고 노드 전부를 방문하기만 할 경우
+  - 자식 노드를 처리한 다음에 부모 노드를 처리해야 하는 문제
+    - 후위 순회
+    - (예시) 폴더 용량 계산
+  - 부모 노드를 처리한 다음에 자식 노드를 처리해야 하는 문제
+    - 전위 순회
+    - (예시) 레벨 계산
+
+### 레벨 순회(level order)
+- 각 노드를 레벨 순으로 검사하는 순회방법
+  - 루트 노드의 레벨 : 1
+  - 아래로 내려갈수록 : 레벨은 증가
+  - 동일한 레벨 : 좌 → 우로 방문
+  - 구현 : 큐
+```
+[레벨 순회의 예시]
+
+        (+)1
+      ↙   ↘
+   (*)2      (/)3
+  ↙  ↘     ↙  ↘
+(A)4  (B)5 (C)6   (D)7
+
+[+] ← | + |   |   |   |   | ←
+[*] ← | * | / |   |   |   | ←
+[/] ← | / | A | B |   |   | ←
+[A] ← | A | B | C | D |   | ←
+[B] ← | B | C | D |   |   | ←
+[C] ← | C | D |   |   |   | ←
+[D] ← | D |   |   |   |   | ←
+    ← |   |   |   |   |   | ←
+```
+
+### 레벨 순회 알고리즘
+- 큐 : 원형 큐 사용
+- 알고리즘 8.4 : 트리 레벨 순회 알고리즘
+```
+level_order()
+
+initialize queue;
+if (root == NULL) then return; // 공백 트리가 아닌 경우
+enqueue(root);
+while isEmpty(queue)≠TRUE do
+        x ← dequeue(queue);
+        if (x ≠ NULL) then
+                print DATA(x);
+                enqueue(LEFT(x));
+                enqueue(RIGHT(x));
+```
+- 프로그램 8.5 : 이진 트리의 레벨 순회
+```
+#define MAX_QUEUE_SIZE 100
+typedef TNode* Element
+        ...
+void levelorder(TNode *n)
+{
+  TNode *n;
+  if(root == NULL) return;
+  init_queue();
+  enqueue(root);
+  while(!isEmpty()) {
+        n = dequeue();
+        if(n != NULL) {
+            printf("[%c]", n->data);
+            enqueue(n->left);
+            enqueue(n->right);
+        }
+  }
+}
+```
+
+### 이진 트리 연산 : 노드 개수 구하기
+- 트리의 노드 개수를 계산
+  - 모든 노드 순회
+  - 후위 순환 방식
+- 알고리즘 8.5 : 이진트리에서 노드 개수 구하는 알고리즘
+```
+count_node(x)
+
+if x ≠ NULL // 공백 트리
+  then return 0;
+  else return 1 + count_node(x.left) + count_node(x.right);
+```
+- 프로그램 8.6 : 이진트리에서 전체 노드 개수를 구하는 순환 함수
+```
+int count_node(TNode *n)
+{
+  if(n == NULL) return 0;
+  return 1 + count_node(n->left) + count_node(n->right);
+}
+```
+
+### 이진 트리 연산 : 단말 노드 개수
+- 트리의 단말 노드 개수를 계산
+- 알고리즘 8.6 : 이진 트리에서 단말 노드 개수 구하는 알고리즘
+```
+count_leaf(x)
+
+if x = NULL then return 0;
+if x.left = NULL and x.right = NULL
+  then return 1;
+else return count_leaf(x.left) + count_leaf(x.right);
+```
+- 프로그램 8.6 : 이진 트리의 단말 노드 개수를 구하는 순환 함수
+```
+int count_leaf(TNode *n) {
+  if(n == NULL) return 0;
+  if(n->left == NULL && n->right == NULL) return 1;
+  else return count_leaf(n->left) + count_leaf(n->right);
+}
+```
+
+### 이진 트리 연산 : 트리 높이
+- 서브 트리들의 높이 중에서 최대값을 구하여 반환
+  - 후위 순환 방법
+```
+getHeight(x)
+
+if x = NULL
+  then return 0;
+  else return 1 + max(getHeight(x.left), getHeight(x.right));
+```
+```
+int calc_height(TNode *n)
+{
+  int hLeft, hRight;
+  if(n == NULL) return 0;
+  hLeft = calc_height(n->left);
+  hRight = calc_height(n->right);
+  return (hLeft > hRight) ? hLeft + 1 : hRight + 1;
+}
+```
+
+### 이진 트리 응용 : 수식 트리
+- 산술식을 트리 형태로 표현한 것
+  - 피연산자(operand) : 단말 노드
+  - 연산자(operator) : 비단말 노드
+  - 왼쪽 서브트리 : 왼쪽 피연산자
+  - 오른쪽 서브트리 : 오른쪽 피연산자
+- 각 수식 트리에 대한 전위, 중위, 후위 순회 결과
+- 
+| 수식 | a + b | a - (b * c) | (a < b) or (c < d) |
+|------|-------|-------------|--------------------|
+| 전위 순회 | + a b | - a * b c | or < a b < c d |
+| 중위 순회 | a + b | a - b * c | a < b or c < d |
+| 후위 순회 | a b + | a b c * - | a b < c d < or |
+
+### 수식 트리 계산
+- 후위 순회 사용
+  - 서브 트리의 값을 순환호출로 계산
+- 알고리즘 8.8 : 수식 트리의 계산 프로그램
+```
+evaluate(exp)
+
+if exp = NULL // 공백 트리
+    then return 0;
+  else x ← ecaluate(LEFT(exp)); // 왼쪽 서브 트리
+       y ← evaluate(RIGHT(exp));
+       op ← DATA(exp); // 데이터 필드에서 연산자 추출
+       return (x op y);
+```
+- 프로그램 8.9 일부
+```
+int evaluate(TNode *n) {
+  int op1, op2;
+  if (n == NULL) return 0; // 공백 트리
+  // 단말 노드이면 피연산자
+  if (n->left == NULL && n->right == NULL) return n->data;
+  else {
+          op1 = evaluate(n->left);
+          op2 = evaluate(n->right);
+          switch(n->data) {
+              case '+': return op1 + op2;
+              case '-': return op1 - op2;
+              case '*': return op1 * op2;
+              case '/': return op1 / op2;
+           }
+           return 0;
+        }
+}
+```
+
+#### 프로그램 8.9 : 수식 트리의 계산 함수 및 테스트 프로그램
+```
+#include <stdio.h>
+#include <stdlin.h>
+
+typedef int TElement; // char -> int
+typedef struct BinTNode {
+  TElement data;
+  struct BinTrNode* left;
+  struct BinTrNode* right;
+} TNode;
+TNode* root;
+
+void init_tree() { root = NULL; }
+int is_empty_tree() { return root == NULL; }
+TNode* get_root() { return root; }
+TNode* create_tree(TElement val, TNode* l, TNode* r) {
+        TNode* n = (TNode*)malloc(sizeof(TNode));
+        n->data = val; n->left = l; n->right = r;
+        return n;
+}
+
+int evaluate(Tnode *n) {
+  int op1, op2;
+  if (n == NULL) return 0; // 공백 트리
+  // 단말 노드이면 피연산자
+  if (n->left == NULL && n->right == NULL) return n->data;
+  else {
+          op1 = evaluate(n->left);
+          op2 = evaluate(n->right);
+          printf("%d %c %d을 계산합니다.\n", op1, n->data, op2);
+          switch(n->data) {
+              case '+': return op1 + op2;
+              case '-': return op1 - op2;
+              case '*': return op1 * op2;
+              case '/': return op1 / op2;
+          }
+          return 0;
+        }
+}
+
+void main() {
+  TNode *n1, *n2, *n3, *n4, *n5, *n6;
+  init_tree();
+  n1 = create_tree(3, NULL, NULL);
+  n2 = create_tree(2, NULL, NULL);
+  n3 = create_tree('*', n1, n2);
+  n4 = create_tree(5, NULL, NULL);
+  n5 = create_tree(6, NULL, NULL);
+  n6 = create_tree('-', n4, n5);
+  root = create_tree('+', n3, n6);
+
+  printf("  계산 결과 = %d\n"), evaluate(root));
+}
+```
+
+#### 프로그램 8.9 : 폴더 용량 계산 함수 및 테스트 프로그램
+- 폴더 용량 계산
+  - 후위 순회
+```
+// 프로그램 8.9의 1 ~ 6행 추가
+
+int calc_size(TNode *n)
+{
+  if (n == NULL) return 0;
+  printf("%d\n", n->data); // 책엔 없음
+  return n->data + calc_size(n->left) + calc_size(n->right);
+}
+
+void main()
+{
+  TNode *m2, *m3, *m4, *m5;
+  m4 = create_tree(200, NULL, NULL);
+  m5 = create_tree(500, NULL, NULL);
+  m3 = create_tree(100, m4, m5);
+  m2 = create_tree(50, NULL, NULL);
+  root = create_tree(0, m2, m3);
+}
+```
+- 프로그램 8.9 변형
+```
+void main()
+{
+  TNode *m2, *m3, *m4, *m5, *m6, *m7;
+  m4 = create_tree(200, NULL, NULL);
+  m5 = create_tree(500, NULL, NULL);
+  m6 = create_tree(500, NULL, NULL);
+  m7 = create_tree(500, NULL, NULL);
+  m3 = create_tree(100, m4, m5);
+  // m2 = create_tree(50, NULL, NULL);
+  m2 = create_tree(50, m6, m7);
+  root = create_tree(0, m2, m3);
+}
+```
+
+##### ✍️작성자: 박지안
+##### 🐧실습 환경: Visual Studio 2022
+##### 🗓️ 작업일: 2026-06-06
