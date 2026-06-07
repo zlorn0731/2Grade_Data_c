@@ -57,3 +57,340 @@
 | 정렬된 배열 | O(n) | O(1) |
 | 정렬된 연결 리스트 | O(n) | O(1) |
 | 힙 | O(logn) | O(logn) |
+- (예시) n이 1024일 때,
+  - O(n) : 1024초, O(logn) : 10초
+
+### 힙(heap)이란?
+- Heap
+  - 더미
+  - 완전이진트리
+  - 여러 개의 값들 중에서 가장 큰 값이나 가장 작은 값을 빠르게 찾아내도록 만들어진 자료구조
+    - 최대 힙(max heap)
+      - 부모 노드의 키 값이 자식 노드의 키 값보다 크거나 같은 완전 이진 트리
+      - Key(부모 노드) ≥ Key(자식 노드)
+    - 최소 힙(min heap)
+      - 부모 노드의 키 값이 자식 노드의 키 값보다 작거나 같은 완전 이진 트리
+        - Key(부모 노드) ≤ Key(자식 노드)
+
+### 최대 힙과 최소 힙
+- 중복된 값을 허용
+- 느슨한 정렬 상태
+- 힙의 목적 :
+  - 삭제 연산에서 가장 큰 값을 효율적으로 찾기만 하면 되는 것
+- 최대 힙(max heap)
+  - Key(부모 노드) ≥ Key(자식 노드)
+  ```
+               (9)
+             ↙    ↘
+           (7)       (6)
+         ↙  ↘      ↙  ↘
+       (5)    (4)  (3)    (2)
+     ↙  ↘     ↘  
+   (2)   (1)    (3)
+  ```
+- 최소 힙(min heap)
+  - Key(부모 노드) ≤ Key(자식 노드)
+  ```
+               (1)
+             ↙    ↘
+           (4)       (2)
+         ↙  ↘      ↙  ↘
+       (7)    (5)  (3)    (3)
+     ↙  ↘     ↘  
+   (7)   (8)    (9)
+  ```
+
+### 힙의 높이
+- n개의 노드를 가지고 있는 힙의 높이는 O(logn)
+  - 힙은 완전 이진트리
+  - 마지막 레벨을 제외하고 각 레벨 i에 2ⁱ-1개의 노드 존재
+```
+[깊이] [노드의 개수]
+  1       1=2⁰ -------------------- (9)
+                                  ↙    ↘
+  2       2=2¹ ---------------- (7)       (6)
+                              ↙  ↘      ↙  ↘
+  3       4=2² ------------ (5)    (4)  (3)    (2)
+                           ↙  ↘     ↘  
+  4        3 ------------ (2)   (1)    (3)
+```
+
+### 힙의 구현 : 배열을 이용
+- 힙은 보통 배열을 이용하여 구현
+  - 완전이진트리 → 각 노드에 번호를 붙임 → 배열의 인덱스
+```
+[배열을 이용한 힙의 구현]
+
+               (9)1
+             ↙    ↘
+           (7)2      (6)3
+         ↙  ↘      ↙  ↘
+       (5)4   (4)5 (3)6   (2)7
+     ↙  ↘     ↘  
+   (2)8  (1)9   (3)10
+
+0  |     |
+1  |  9  |
+2  |  7  |
+3  |  6  |
+4  |  5  |
+5  |  4  |
+6  |  3  |
+7  |  2  |
+8  |  2  |
+9  |  1  |
+10 |  3  |
+11 |     |
+```
+- 부모 노드와 자식 노드의 관계
+  - 왼쪽 자식의 인덱스 = (부모의 인덱스) * 2
+  - 오른쪽 자식의 인덱스 = (부모의 인덱스) * 2 + 1
+  - 부모의 인덱스 = (자식의 인덱스) / 2
+- (예시) 정수 저장 힙
+  - 저항할 항목의 자료형 : HNode
+  - Key(n) : 힙 노드 n의 우선순위를 반환
+```
+typedef int HNode; // 힙에 저장할 항목의 자료형
+#define Key(n) (n) // 힙 노드 n의 키값
+
+HNode heap[MAX_HEAP_NODE]; // 배열을 이용해 구현한 힙(힙노드 배열)
+int heap_size; // 힙의 크기
+```
+- i번째 부모 노드와 왼쪽 자식, 오른쪽 자식
+```
+#define Parent(i) (heap[i/2]) // i의 부모 노드
+#define Left(i)   (heap[i*2]) // i의 왼쪽 자식 노드
+#define Right(i)  (heap[i*2+1]) // i의 오른쪽 자식 노드
+```
+- 프로그램 10.1 : 배열을 이용한 힙의 기본 틀
+```
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX_HEAP_NODE 200
+
+void error(char str[]) {...} // 프로그램 3.1 함수와 동일
+typedef int HNode;
+#define Key(n) (n) // 힙 노드 n의 키 값
+
+HNode heap[MAX_HEAP_NODE]; // 배열을 이용해 구현한 힙
+int heap_size;
+#define Parent(i) (heap[i/2])
+#define Left(i)   (heap[i*2])
+#define Right(i)  (heap[i*2+1])
+void init_heap()       { heap_size = 0; }
+int is_empty_heap()    { return heap_size == 0; }
+// 배열 0번 요소를 사용하지 않음
+int is_full_heap()     { return (heap_size == MAX_HEAP_NODE - 1); }
+HNode find_heap()      { return heap[1]; }
+```
+
+### 힙의 연산 : 삽입 연산
+- 삽입 연산
+- Up-heap
+  - 회사에서 신입 사원이 들어오면 일단 말단 위치에 앉힘
+  - 신입 사원의 능력을 봐서 위로 승진시킴
+  - (1) Heap에 새로운 요소가 들어 오면, 일단 새로운 노드를 heap의 마지막 노드에 이어서 삽입
+  - (2) 삽입 후에 새로운 노드를 부모 노드들과 교환해서 heap의 성질을 만족 -> up-heap
+
+### Up-heap
+- 삽입된 노드에서 루트까지의 경로에 있는 노드들을 비교/교환
+- 힙의 성질을 복원
+  - 키 k가 부모노드보다 작거나 같으면 upheap는 종료
+- 알고리즘 10.1 : 최대 힙에서의 삽입 알고리즘
+```
+insert(node)
+
+heapSize ← heapSize + 1;
+i ← heapSize;
+heap[i] ← node;
+while i ≠ 1 and KEY(heap[i]) > KEY(Parent(i)) do
+      heap[i] ↔ Parent(i);
+      i ← Parent(i);
+```
+- 프로그램 10.2 : 최대 힙 트리의 삽입 함수
+```
+void insert_heap(HNode n)
+{
+  int i;
+  if (is_full_heap()) return;
+  i = ++(heap_size);
+  while (i != 1 && Key(n) > Key(Parent(i))) {
+          heap[i] = Parent(i);
+          i /= 2; // 한 레벨 증가
+  }
+  heap[i] = n;
+}
+```
+
+### 삭제 연산
+- 최대 힙에서의 삭제 → 항상 루트가 삭제됨
+  - 가장 큰 키 값을 가진 노드를 삭제하는 것
+- 방법 : down-heap
+  - 루트 삭제
+  - 회사에서 사장의 자리가 비게 됨
+  - 말단 사원을 사장 자리로 올림
+  - 능력에 따라 강등 반복
+
+### Downheap 
+- 알고리즘 10.2 : 힙 트리에서의 삭제 알고리즘
+```
+remove()
+
+item ← A[1];
+A[1] ← A[heapSize];
+heapSize ← heapSize - 1;
+i ← 2;
+while i ≤ heapSize do
+      if i < heapSize and A[LEFT(i)] > A[RIGHT(i)]
+            then largest ← LEFT(i);
+            else largest ← RIGHT(i);
+      if A[PARENT(largest)] > A[largest]
+            then break;
+      A[PARENT(largest)] ↔ A[largest];
+      i ← LEFT(largest); return item;
+```
+- 프로그램 10.3 : 최대 힙 트리의 삭제 함수
+```
+HNode delete_heap()
+{
+  HNode hroot, last;
+  int parent = 1, child = 2;
+  if (is_empty_heap()) error("힙 트리 공백 에러");
+  hroot = heap[i]; // root 반환
+  last = heap[heap_size--];
+  while (child <= heap_size) {
+      // 현재 노드의 자식들 중에서 더 큰 자식을 찾음
+      if (child < heap_size && Ket(Left(parent)) < Key(Right(parent)))
+              child++; // 더 큰 자식의 인덱스
+      if (Key(last) >= Key(heap[child]))
+              break;
+      heap[parent] = heap[child];
+      parent = child;
+      child *= 2; // 한 단계 아래로 이동
+  }
+  heap[parent] = last; // 마지막 노드를 최종 위치에 저장
+  return hroot;
+}
+```
+
+### 전체 프로그램
+- 프로그램 10.4 : 최대 힙 트리 테스트 프로그램
+```
+      .... // 프로그램 10.1 추가
+void insert_heap(HNode n) {...} // 프로그램 10.2 함수와 동일
+HNode delete_heap() {...} // 프로그램 10.3 함수와 동일
+
+void print_heap()
+{
+  int i, level;
+  for (i = 1, level = 1; i <= heap_size; i++) {
+          if (i == level) {
+                  printf("\n");
+                  level *= 2;
+          }
+          printf("%2d", Key(heap[i]));
+  }
+  printf("\n-----------");
+}
+
+void main()
+{
+  init_heap();
+  insert_heap(2);    insert_heap(5);
+  insert_heap(4);    insert_heap(8);
+  insert_heap(9);    insert_heap(3);
+  insert_heap(7);    insert_heap(3);
+  print_heap();
+
+  delete_heap();     print_heap();
+  delete_heap();     print_heap();
+  printf("\n");
+}
+```
+
+### 힙의 복잡도 분석
+- 삽입 연산에서 최악의 경우
+  - 루트 노드까지 올라가야 하므로 트리의 높이에 해당하는 비교 연산 및 이동 연산이 필요
+    - O(log₂n)
+- 삭제 연산 최악의 경우
+  - 가장 아래 레벨까지 내려가야 하므로 역시 트리의 높이 만큼의 시간이 걸림
+    - O(log₂n)
+
+### 힙 정렬
+- 힙을 이용하면 정렬 가능 : 힙 정렬
+  - 먼저 정렬해야 할 n개의 요소들을 최대 힙에 삽입
+  - 한번에 하나씩 요소를 힙에서 삭제하여 저장하면 됨
+  - 삭제되는 요소들은 값이 증가되는 순서(최소 힙의 경우)
+- 시간 복잡도 : O(nlog₂n)
+  - 하나의 요소의 삽입 삭제가 O(log₂n)
+  - 요소의 개수가 n개 →O(nlog₂n)
+  - 대부분의 간단한 정렬 알고리즘 : O(n²)
+- 특히 유용한 경우
+  - 전체의 정렬이 아니라 가장 큰 값 몇 개만 필요할 때임
+- 프로그램 10.5 : 힙 정렬 프로그램
+```
+- 배열을 오름차순으로 정렬
+
+void insert_heap(HNode n) {...} // 프로그램 10.2 함수와 동일
+HNode delete_heap() {...} // 프로그램 10.3 함수와 동일
+
+void print_array(int a[], int n, char* msg)
+{
+  int i;
+  printf("%10s: ", msg);
+  for (i = 0; i < n; i++)
+          printf("%3d", a[i]);
+  printf("\n");
+}
+
+void main()
+{
+  int i, data[10];
+  for (i = 0; i < 10; i++)
+      data[i] = rand() % 100; // 난수 배열 생성
+  print_array(data, 10, "정렬 전");
+
+  init_heap();
+
+  for (i = 0; i < 10; i++) 
+       insert_heap(data[i]); // 배열 항목들을 힙에 넣음
+
+  for (i = 9; i >= 0; i--)
+       data[i] = Key(delete_heap()); // 힙에서 꺼내 배열에 다시 저장
+
+  print_array(data, 10, "정렬 후");
+}
+```
+
+### 허프만 코드
+- 이진 트리는 각 글자의 빈도가 알려져 있는 메시지의 내용을 압축하는데 사용될 수 있음
+- 이런 종류의 이진트리 → 허프만 코딩 트리
+- 압축
+  - 높은 빈도수의 글자
+    - 적은 비트수 부여
+  - 낮은 빈도수의 글자
+    - 많은 비트수 부여
+- (예시) e와 z만 표현
+  - 모든 문자를 7비트로 표현 : 7bit* (e 123회 + z 1회)
+    - 868 bits
+  - e는 2비트로, z를 20비트로 표현 : 2bit (e 123회) + 20bit* (z 1회)
+    - 266bits
+- ASCII 코드
+  - 모든 문자를 동일한 비트수로 표현
+
+### 문자의 빈도수
+- 빈도수가 알려진 문자에 대한 고정길이코드와 가변길이코드의 비교
+| 글자 | 빈도수 | 고정길이코드 | 가변길이코드 |
+|-----|--------| 코드 | 비트수 | 전체비트수 | 코드 | 비트수 | 전체비트수 |
+|------|--------|--------------|-------------|
+| A | 17 | 0000 | 4 | 68 | 00 | 2 | 34 |
+| B | 3 | 0001 | 4 | 12 | 11110 | 5 | 15 |
+| C | 6 | 0010 | 4 | 24 | 0110 | 4 | 24 |
+| D | 9 | 0011 | 4 | 36 | 1110 | 4 | 36 |
+| E | 27 | 0100 | 4 | 108 | 10 | 2 | 54 |
+| F | 5 | 0101 | 4 | 20 | 0111 | 4 | 20 |
+| G | 4 | 0110 | 4 | 16 | 11110 | 5 | 20 |
+| H | 13 | 0111 | 4 | 52 | 010 | 3 | 39 |
+| I | 15 | 1000 | 4 | 60 | 110 | 3 | 45 |
+| J | 1 | 1001 | 4 | 4 | 11111 | 5 | 5 |
+| 합계 | 100 |   |   | 400 |   |   | 292 |
