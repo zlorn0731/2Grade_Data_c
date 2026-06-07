@@ -395,3 +395,95 @@ void main()
 | I | 15 | 1000 | 4 | 60 | 110 | 3 | 45 |
 | J | 1 | 1001 | 4 | 4 | 11111 | 5 | 5 |
 | **합계** | **100** |  |  | **400** |  |  | **292** |
+- (예시) 코드 읽기, "FACE"
+```
+                 F      A      C      E
+고정길이코드 : | 0101 | 0000 | 0010 | 0100 |
+
+                 F     A     C     E
+가변길이코드 : | 0111 | 00 | 0110 | 10 |
+```
+- 코드 읽고 쓰기
+  - 고정 길이 코드 : 4비트씩 끊어서 적거나 읽기
+  - 가변 길이 코드
+    - 한 비트씩 읽으면서 코드 테이블에 코드가 있으면 한 문자로 처리
+    - 코딩된 비트열은 정확히 하나의 코드만일치 -> 이런 종류의 코드를 허프만 코드
+   
+### 허프만 코드 생성 절차
+- 1단계 : 각 문자별로 노드를 생성, 노드의 값은 빈도수가 됨
+- 2단계 : 가장 작은 빈도수의 루트 2개를 묶어 이진트리를 구성
+  - 이 때 루트의 값 : 자식 노드의 값의 합
+- 3단계 : 남은 트리에서 가장 작은 빈도수의 루트를 2개 찾아 묶어 이진트리를 구성
+- 4단계 : 남은 트리에 대해 동일한 처리
+- 5단계 : 마지막으로 최종 허프만 트리 1개가 됨
+- 6단계 : 코드 할당, 왼쪽 간석 : 1, 오른쪽 간선 : 0
+
+### 허프만 코딩 트리 생성 프로그램
+- 최소 힙 사용
+  - 여러 문자의 빈도수들 중에서 가장 작은 2개를 찾는 과정
+- 과정
+  - make_tree()
+    - 각 문자의 빈도수를 입력 받아 모든 노드를 힙에 삽입
+  - 다음
+    - 현재 힙에서 최소 노드 2개를 뽑고 이들을 묶어 하나의 노드를 다시 힙에 삽입하는 과정을 반복
+- 프로그램 10.6 : 허프만 코딩 트리 생성 프로그램
+```
+            ..... // 프로그램 10.1 : 코드 추가, 배열을 이용한 힙의 기본 틀
+void insert_heap(HNode n)
+{
+  int i;
+  if (is_full_heap()) return;
+  i = ++(heap_size);
+  while (i != 1 && Key(n) < Key(Parent(i))) {
+          heap[i] = Parent(i);
+          i /= 2;
+}
+
+HNode delete_heap()
+{
+  HNode hroot, last;
+  int parent = 1, child = 2;
+  if (is_empty_heap())
+        error("힙 트리 공백 에러");
+
+  hroot = heap[1];
+  last = heap[heap_size--];
+  while (child <= heap_size) {
+          if (child < heap_size && Key(Left(parent)) > Key(Right(parent)))
+                      child++;
+          if (Key(last) <= Key(heap[child]))
+                      break;
+          heap[parent] = heap[child];
+          parent = child;
+          child *= 2;
+  }
+  heap[parent] = last;
+  return hroot;
+}
+
+void make_tree(int freq[], int n)
+{
+  HNode e1, e2;
+  int i;
+  init_heap();
+  for (i = 0; i < n; i++)
+        insert_heap(freq[i]); // 빈도수
+  for (i = 1; i < n; i++) {
+        e1 = delete_heap();
+        e2 = delete_heap();
+        insert_heap(Key(e1) + Key(e2));
+        printf("  (%d+%d)\n", Key(e1), Key(e2));
+  }
+}
+
+int main()
+{
+  char label[] = { 'A', 'B', 'C', 'D', 'E' };
+  int freq[] = { 15, 12, 8, 6, 4 };
+  make_tree(freq, 5);
+}
+```
+
+##### ✍️작성자: 박지안
+##### 🐧실습 환경: Visual Studio 2022
+##### 🗓️ 작업일: 2026-06-07
